@@ -1,0 +1,56 @@
+//core modules
+const path = require("path");
+
+//third party modules
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+
+//local modules
+const authRouter = require("./routes/authRouter");
+const User = require("./models/user");
+const db = require("./utils/databaseUtil");
+const { authenticationToken } = require("./middleware/authenticateToken");
+const Expense = require("./models/expense");
+const expenseRouter = require("./routes/expenseRouter");
+const PasswordReset = require("./models/passwordReset");
+const Payments = require("./models/payment");
+const paymentRouter = require("./routes/paymentRouter");
+
+const app = express();
+
+app.use(cors());
+app.use(express.static(path.join(__dirname, "public")));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+User.hasMany(Expense);
+Expense.belongsTo(User);
+
+User.hasMany(Payments);
+Payments.belongsTo(User);
+
+app.use("/", (req, res, next) => {
+  console.log("Middleware 1");
+  next();
+});
+
+app.use("/auth", authRouter);
+app.use("/expenses", expenseRouter);
+app.use("/payments", paymentRouter);
+
+app.get("/verify-token", authenticationToken, (req, res) => {
+  res.json({ message: "Welcome to your profile", user: req.user });
+});
+
+db.sync()
+  .then(() => {
+    app.listen(process.env.PORT, () => {
+      console.log(
+        `connection eshtablished successfully http://localhost:${process.env.PORT}/auth/login`
+      );
+    });
+  })
+  .catch((err) => {
+    console.log("server connection failed", err.message);
+  });
