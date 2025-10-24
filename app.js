@@ -1,10 +1,13 @@
 //core modules
 const path = require("path");
+const fs = require("fs");
 
 //third party modules
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const compression = require("compression");
+const morgan = require("morgan");
 
 //local modules
 const authRouter = require("./routes/authRouter");
@@ -19,7 +22,14 @@ const paymentRouter = require("./routes/paymentRouter");
 
 const app = express();
 
+const accessLogStream = fs.createWriteStream(
+  path.join(__dirname, "access.log"),
+  { flags: "a" }
+);
+
 app.use(cors());
+app.use(compression());
+app.use(morgan("combined", { stream: accessLogStream }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
