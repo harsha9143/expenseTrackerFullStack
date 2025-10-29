@@ -4,6 +4,8 @@ const { getCategory } = require("../services/genaiService");
 const User = require("../models/user");
 const { literal } = require("sequelize");
 const sequelize = require("../utils/databaseUtil");
+const { uploadToS3 } = require("../services/s3Service");
+const Download = require("../models/download");
 
 exports.getHomePage = (req, res) => {
   res.sendFile(path.join(__dirname, "../views", "expenses.html"));
@@ -77,6 +79,28 @@ exports.getExpenses = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+exports.downloadExpenses = async (req, res) => {
+  try {
+    const expenses = await Expense.findAll({
+      where: {
+        userId: req.user.id,
+      },
+    });
+    const stringifiedExpenses = JSON.stringify(expenses);
+    const fileName = `expenses${req.user.id}/${new Date()}.txt`;
+    const fileURL = await uploadToS3(stringifiedExpenses, fileName);
+    if (fileURL) {
+      await Download.create({ url: fileURL, userId: req.user.id });
+      return res.status(200).json({ url: fileURL, success: true });
+    }
+    res.status(400).json({ message: "Error occured......cannot download" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Server not responding. Cannot download file" });
   }
 };
 

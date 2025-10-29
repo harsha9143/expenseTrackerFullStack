@@ -29,4 +29,10 @@ expenseRouter.delete(
   expensesController.removeExpense
 );
 
+expenseRouter.post(
+  "/download",
+  authenticationToken,
+  expensesController.downloadExpenses
+);
+
 module.exports = expenseRouter;

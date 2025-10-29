@@ -211,3 +211,20 @@ document.getElementById("logout-btn").addEventListener("click", () => {
   localStorage.removeItem("token");
   window.location.href = "http://localhost:4000/auth/login";
 });
+
+document.getElementById("download-btn").addEventListener("click", async () => {
+  const token = localStorage.getItem("token");
+  const downloadURL = await fetch("http://localhost:4000/expenses/download", {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + token,
+    },
+  });
+
+  const url = await downloadURL.json();
+  if (url.success) {
+    window.open(url.url, "_blank");
+  } else {
+    window.open("http://localhost:4000/error", "_blank");
+  }
+});

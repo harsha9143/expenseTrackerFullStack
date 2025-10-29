@@ -19,6 +19,7 @@ const expenseRouter = require("./routes/expenseRouter");
 const PasswordReset = require("./models/passwordReset");
 const Payments = require("./models/payment");
 const paymentRouter = require("./routes/paymentRouter");
+const Download = require("./models/download");
 
 const app = express();
 
@@ -40,6 +41,9 @@ Expense.belongsTo(User);
 User.hasMany(Payments);
 Payments.belongsTo(User);
 
+User.hasMany(Download);
+Download.belongsTo(User);
+
 app.use("/", (req, res, next) => {
   console.log("Middleware 1");
   next();
@@ -51,6 +55,10 @@ app.use("/payments", paymentRouter);
 
 app.get("/verify-token", authenticationToken, (req, res) => {
   res.json({ message: "Welcome to your profile", user: req.user });
+});
+
+app.use("/error", (req, res) => {
+  res.status(404).send("Error!! something went wrong");
 });
 
 db.sync()
